@@ -1,6 +1,6 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="color-scheme" content="light dark"><title>업무장부</title><meta name="theme-color" content="#1F3347"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="업무장부"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style></head><body><title>한국열쇠 업무장부</title>
 <style>
-/* 폰 한 손 조작용 앱 셸: 상단 제목줄 · 가운데 스크롤 · 하단 탭 4개(장부/재고/주문/더보기), 입력은 아래에서 올라오는 시트 */
+/* 폰 한 손 조작용 앱 셸: 상단 제목줄 · 가운데 스크롤 · 하단 탭 5개(장부/결산/재고/주문/더보기), 입력은 아래에서 올라오는 시트 */
 :root{
   --bg:#eef1f4; --card:#ffffff; --ink:#18212b; --muted:#5f6b78; --line:#dde2e8; --soft:#f4f6f8;
   --navy:#1f3347; --navy-ink:#ffffff;
@@ -49,7 +49,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .monthbar b{font-size:16px;min-width:96px;text-align:center}
 main{padding:0 16px calc(96px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
 .nav button{border:0;background:transparent;padding:6px 0 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:12px;font-weight:600;position:relative}
 .nav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav button.on{color:var(--navy)}
@@ -99,6 +99,25 @@ main{padding:0 16px calc(96px + env(safe-area-inset-bottom,0px));max-width:720px
 .cal .d.sel{background:var(--brass-weak)}
 .cal .d.blank{visibility:hidden}
 
+.chg{display:inline-block;margin-top:3px;font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 5px}
+.chg.up{color:var(--inc);background:var(--inc-weak)} .chg.dn{color:var(--exp);background:var(--exp-weak)}
+.ychart{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;height:150px;align-items:end}
+.ychart .col{border:0;background:transparent;padding:0;height:100%;display:flex;flex-direction:column;align-items:stretch;gap:4px;border-radius:6px}
+.ychart .col:active{background:var(--soft)}
+.ychart .pair{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2px}
+.ychart .b{display:block;width:42%;max-width:12px;border-radius:3px 3px 0 0;min-height:0}
+.ychart .b.inc{background:var(--inc)} .ychart .b.exp{background:var(--exp)}
+.ychart small{font-size:11px;color:var(--muted);text-align:center}
+.ytable .tr{display:grid;grid-template-columns:38px 1fr 1fr 1fr;gap:6px;align-items:center;width:100%;border:0;background:transparent;padding:8px 2px;border-top:1px solid var(--line);font-size:13px;text-align:right}
+.ytable .tr span:first-child{text-align:left;font-weight:700}
+.ytable button.tr:active{background:var(--soft)}
+.ytable .tr.zero{color:var(--muted)} .ytable .tr.zero span{color:var(--muted)!important;font-weight:400}
+.ytable .th{border-top:0;font-size:12px;color:var(--muted);font-weight:700;padding-top:0}
+.ytable .tf{font-weight:800;background:var(--soft);border-radius:8px;border-top:0;margin-top:2px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.qgrid .card.q{margin:0;padding:12px}
+.qgrid .q>b{font-size:15px} .qgrid .q>small{color:var(--muted);font-size:12px;margin-left:6px}
+.qgrid .kv{font-size:12.5px;margin-top:4px}
 .bars .row{display:grid;grid-template-columns:88px 1fr auto;gap:10px;align-items:center;margin:7px 0;font-size:13.5px}
 .bars .row .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bars .track{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}
@@ -299,6 +318,7 @@ textarea.input{height:auto;min-height:72px;padding:10px 12px;resize:vertical;lin
 <button class="fab" id="fab" hidden><span>+</span> 입력</button>
 <nav class="nav" id="nav">
   <button data-tab="ledger"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M9 8h6"/></svg>장부</button>
+  <button data-tab="close"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 16v-5"/><path d="M10 16V7"/><path d="M14 16v-7"/><path d="M18 16V5"/></svg>결산</button>
   <button data-tab="stock"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>재고</button>
   <button data-tab="order"><svg viewBox="0 0 24 24"><path d="M8 4h8l1 3H7z"/><rect x="4" y="7" width="16" height="14" rx="2"/><path d="M8 12h8M8 16h5"/></svg>주문<span class="badge" id="orderBadge" hidden></span></button>
   <button data-tab="more"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>더보기</button>
@@ -384,7 +404,7 @@ function normalize(s){
   b.entries.forEach(e=>{if(!e.src&&AD_NAMES.includes(e.partner)){e.src=e.partner;e.partner="";if(!b.settings.adSources.includes(e.src))b.settings.adSources.push(e.src)}});
   b.demo=!!s.demo;b.demoVer=s.demoVer||0;return b;
 }
-const ui={tab:"ledger",lview:"day",month:ym(new Date()),selDay:null,invQ:"",invCat:"전체",invSort:"no",invReorder:false,orderAddName:"",orderAddQty:1};
+const ui={tab:"ledger",lview:"day",year:new Date().getFullYear(),ccat:"in",cpart:"in",month:ym(new Date()),selDay:null,invQ:"",invCat:"전체",invSort:"no",invReorder:false,orderAddName:"",orderAddQty:1};
 
 /* ---------------- 유틸 ---------------- */
 const $=id=>document.getElementById(id);
@@ -461,6 +481,7 @@ function render(){
   const ob=$("orderBadge");const n=st.orders.length;ob.hidden=!n;ob.textContent=n;
   $("fab").hidden=ui.tab!=="ledger";
   if(ui.tab==="ledger")renderLedger();
+  else if(ui.tab==="close")renderClose();
   else if(ui.tab==="stock")renderStock(qm);
   else if(ui.tab==="order")renderOrder(qm,lows);
   else renderMore();
@@ -593,10 +614,11 @@ function barsHtml(rows,total,cls,unit,click){if(!rows.length)return '<div class=
   return '<div class="bars">'+rows.map(([n,v])=>'<'+tag+' class="row'+(click?" tap":"")+'"'+(click?' data-act="statDetail" data-k="'+click.k+'" data-f="'+click.f+'" data-v="'+esc(n)+'"':"")+'><span class="n">'+esc(n)+'</span><span class="track"><span class="fill '+(cls||"")+'" style="width:'+(v/mx*100)+'%"></span></span><span class="v">'+(unit==="개"?v+"개":won(v))+(total?'<small>'+Math.round(v/total*100)+'%</small>':"")+'</span>'+(click?'<span class="chev">›</span>':"")+'</'+tag+'>').join("")+'</div>'}
 function entryLabel(e){const P=((e.products&&e.products.length)?e.products:(e.costItems||[]));if(e.costItems&&e.costItems.length)return P.map(p=>p.name+(p.qty>1?" "+p.qty+"개":"")).join(", ");return [e.memo,e.src&&!String(e.memo||"").includes(e.src)?e.src:"",e.partner].filter(Boolean).join(" · ")||P.map(p=>p.name+(p.qty>1?" "+p.qty+"개":"")).join(", ")||e.cat||"-"}
 function openStatDetail(k,f,v){
-  const list=monthEntries(ui.month).filter(e=>e.kind===k&&(f==="product"?(e.products||[]).some(p=>p.name===v):((e[f]||"미지정")===v))).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.ts||0)-(b.ts||0));
+  const yr=ui.tab==="close";const scope=yr?ui.year+"년":mlabel(ui.month);
+  const list=(yr?yearEntries(ui.year):monthEntries(ui.month)).filter(e=>e.kind===k&&(f==="product"?(e.products||[]).some(p=>p.name===v):((e[f]||"미지정")===v))).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.ts||0)-(b.ts||0));
   const total=f==="product"?0:sum(list,e=>e.amount);
   const title=v+(f==="product"?" 사용 내역":k==="out"?" 지출 내역":" 매출 내역");
-  const r=el=>{el.innerHTML=shell(title,'<div class="dsum"><span>'+mlabel(ui.month)+' · '+list.length+'건'+(f==="product"?"":" 합계")+'</span><b class="num '+(k==="out"?"exp-t":"inc-t")+'">'+(f==="product"?sum(list,e=>(e.products||[]).filter(p=>p.name===v).reduce((s,p)=>s+p.qty,0))+"개":won(total))+'</b></div>'+
+  const r=el=>{el.innerHTML=shell(title,'<div class="dsum"><span>'+scope+' · '+list.length+'건'+(f==="product"?"":" 합계")+'</span><b class="num '+(k==="out"?"exp-t":"inc-t")+'">'+(f==="product"?sum(list,e=>(e.products||[]).filter(p=>p.name===v).reduce((s,p)=>s+p.qty,0))+"개":won(total))+'</b></div>'+
     '<div class="dlist">'+(list.length?list.map(e=>'<button class="drow" data-act="editEntry" data-id="'+e.id+'"><span class="dd num">'+e.date.slice(5).replace("-","/")+'</span><span class="dt">'+esc(entryLabel(e))+'</span><span class="da num '+(k==="out"?"exp-t":"inc-t")+'">'+won(e.amount)+'</span></button>').join(""):'<div class="subnote">내역이 없어요.</div>')+'</div><div class="subnote">줄을 누르면 그 기록을 고칠 수 있어요.</div>')};
   openSheet(r);
 }
@@ -619,6 +641,48 @@ function statView(list,t){
   const pq={};inc.forEach(e=>(e.products||[]).forEach(p=>{pq[p.name]=(pq[p.name]||0)+p.qty}));
   h+='<div class="card"><h3>많이 쓴 제품 (작업 매출에 연결된 것)</h3>'+barsHtml(Object.entries(pq).sort((a,b)=>b[1]-a[1]).slice(0,10),0,"brass","개",{k:"in",f:"product"})+'</div>';
   return h;
+}
+
+/* ---- 결산 (연간) ---- */
+function yearEntries(y){const p=y+"-";return st.entries.filter(e=>e.date&&e.date.slice(0,5)===p)}
+function signed(n){return (n<0?"−":"")+won(Math.abs(n))}
+function rate(net,inc){return inc?(net/inc*100).toFixed(1)+"%":"-"}
+function renderClose(){
+  const y=ui.year;
+  $("title").innerHTML='<div class="monthhead"><button data-act="yPrev" aria-label="이전 해">‹</button><button class="mh" data-act="yNow" aria-label="올해로"><b>'+y+'년 결산</b></button><button data-act="yNext" aria-label="다음 해">›</button></div>';
+  $("topRight").innerHTML="";
+  const all=yearEntries(y);const t=totals(all);
+  const months=[];for(let i=1;i<=12;i++){const m=y+"-"+pad(i);months.push([i,m,totals(all.filter(e=>e.date.slice(0,7)===m))])}
+  // 올해는 아직 안 끝났으니 작년도 오늘 날짜까지만 잘라서 비교 (1~10월 vs 작년 1~10월)
+  const td=today(),cur=Number(td.slice(0,4))===y,cut=(y-1)+td.slice(4);
+  const prev=totals(yearEntries(y-1).filter(e=>!cur||e.date<=cut));const hasPrev=prev.inc||prev.exp;
+  const chg=(a,b,bad)=>{if(!hasPrev||!b)return "";const r=(a-b)/Math.abs(b)*100;const good=bad?r<=0:r>=0;return '<span class="chg '+(good?"up":"dn")+'">'+(r>=0?"▲ ":"▼ ")+Math.abs(r).toFixed(1)+'%</span>'};
+  let h=demoBanner();
+  // 연간 누계
+  h+='<div class="card"><h3>연간 누계'+(hasPrev?(cur?' · 작년 같은 기간(~'+Number(td.slice(5,7))+'/'+Number(td.slice(8))+') 대비':' · 작년 대비'):'')+'</h3><div class="sum3"><div><div class="k">매출</div><div class="v inc num">'+won(t.inc)+'</div>'+chg(t.inc,prev.inc)+'</div><div><div class="k">지출</div><div class="v exp num">'+won(t.exp)+'</div>'+chg(t.exp,prev.exp,1)+'</div><div><div class="k">영업이익</div><div class="v num">'+signed(t.net)+'</div>'+chg(t.net,prev.net)+'</div></div>'+
+     '<div class="subnote">영업이익률 <b>'+rate(t.net,t.inc)+'</b> · 매출 '+all.filter(e=>e.kind==="in").length+'건 · 지출 '+all.filter(e=>e.kind==="out").length+'건</div></div>';
+  if(!all.length){h+='<div class="empty"><b>'+y+'년 기록이 없어요</b>장부에 매출·지출을 입력하면 여기에 1년 결산이 모여요.</div>';$("main").innerHTML=h;return}
+  // 월별 막대 차트 (매출·지출 나란히)
+  const mx=Math.max(1,...months.map(m=>Math.max(m[2].inc,m[2].exp)));
+  h+='<div class="card"><h3>월별 매출·지출</h3><div class="ychart">'+months.map(([i,m,v])=>'<button class="col" data-act="goMonth" data-m="'+m+'" aria-label="'+i+'월 매출 '+won(v.inc)+' 지출 '+won(v.exp)+'"><span class="pair"><i class="b inc" style="height:'+(v.inc/mx*100)+'%"></i><i class="b exp" style="height:'+(v.exp/mx*100)+'%"></i></span><small>'+i+'</small></button>').join("")+'</div><div class="calkey"><span class="inc-t">■ 매출</span><span class="exp-t">■ 지출</span><span style="color:var(--muted)">막대를 누르면 그달 장부로</span></div></div>';
+  // 월별 요약 표
+  h+='<div class="card"><h3>월별 요약</h3><div class="ytable"><div class="tr th"><span>월</span><span>매출</span><span>지출</span><span>영업이익</span></div>'+
+     months.map(([i,m,v])=>'<button class="tr'+((v.inc||v.exp)?"":" zero")+'" data-act="goMonth" data-m="'+m+'"><span>'+i+'월</span><span class="num inc-t">'+won(v.inc)+'</span><span class="num exp-t">'+won(v.exp)+'</span><span class="num'+(v.net<0?" exp-t":"")+'">'+signed(v.net)+'</span></button>').join("")+
+     '<div class="tr tf"><span>합계</span><span class="num inc-t">'+won(t.inc)+'</span><span class="num exp-t">'+won(t.exp)+'</span><span class="num'+(t.net<0?" exp-t":"")+'">'+signed(t.net)+'</span></div></div></div>';
+  // 분기별
+  h+='<div class="qgrid">'+[0,1,2,3].map(q=>{const v=totals(all.filter(e=>Math.floor((Number(e.date.slice(5,7))-1)/3)===q));
+    return '<div class="card q"><b>'+(q+1)+'분기</b><small>'+(q*3+1)+'~'+(q*3+3)+'월</small><div class="kv"><span>매출</span><b class="num inc-t">'+won(v.inc)+'</b></div><div class="kv"><span>지출</span><b class="num exp-t">'+won(v.exp)+'</b></div><div class="kv"><span>영업이익</span><b class="num'+(v.net<0?" exp-t":"")+'">'+signed(v.net)+'</b></div><div class="kv"><span>이익률</span><b>'+rate(v.net,v.inc)+'</b></div></div>'}).join("")+'</div>';
+  // 분류별 / 광고유입별 / 거래처별
+  const by=(arr,f)=>{const m={};arr.forEach(e=>{const k=f(e)||"미지정";m[k]=(m[k]||0)+e.amount});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
+  const inc=all.filter(e=>e.kind==="in"),exp=all.filter(e=>e.kind==="out");
+  const seg=(key,cur)=>'<div class="seg kind">'+[["in","매출"],["out","지출"]].map(([k,n])=>'<button data-act="cseg" data-key="'+key+'" data-v="'+k+'" class="'+(cur===k?"on":"")+'">'+n+'</button>').join("")+'</div>';
+  const cIn=ui.ccat==="in";
+  h+='<div class="card"><h3>분류별 · '+(cIn?"매출 "+won(t.inc):"지출 "+won(t.exp))+'원</h3>'+seg("ccat",ui.ccat)+barsHtml(by(cIn?inc:exp,e=>e.cat),cIn?t.inc:t.exp,cIn?"inc":"exp",0,{k:cIn?"in":"out",f:"cat"})+'</div>';
+  h+='<div class="card"><h3>광고유입별 매출</h3>'+barsHtml(by(inc,e=>e.src),t.inc,"brass",0,{k:"in",f:"src"})+'</div>';
+  const pIn=ui.cpart==="in";
+  h+='<div class="card"><h3>거래처별 '+(pIn?"매출":"지출")+' TOP 8</h3>'+seg("cpart",ui.cpart)+barsHtml(by((pIn?inc:exp).filter(e=>e.partner),e=>e.partner).slice(0,8),0,pIn?"":"exp",0,{k:pIn?"in":"out",f:"partner"})+'</div>';
+  h+='<div class="subnote" style="text-align:center">항목을 누르면 '+y+'년 내역을 볼 수 있어요.</div>';
+  $("main").innerHTML=h;
 }
 
 /* ---- 매출/지출 입력 시트 ---- */
@@ -1027,6 +1091,11 @@ async function act(a,btn){
     case "selDay":openDay(d.d);render();break;
     case "fixed":openFixedList();break;
     case "addOnDay":openEntry(null,{date:ui.selDay});break;
+    case "yPrev":ui.year--;render();break;
+    case "yNext":ui.year++;render();break;
+    case "yNow":ui.year=new Date().getFullYear();render();break;
+    case "goMonth":ui.month=d.m;ui.selDay=null;ui.tab="ledger";render();window.scrollTo(0,0);break;
+    case "cseg":ui[d.key]=d.v;render();break;
     case "statDetail":openStatDetail(d.k,d.f,d.v);break;
     case "editEntry":{const e=st.entries.find(x=>x.id===d.id);if(e)openEntry(e);break}
     case "goBackup":ui.tab="more";render();window.scrollTo(0,0);break;
