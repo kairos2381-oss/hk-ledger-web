@@ -7,6 +7,7 @@
   --brass:#b98a2e; --brass-weak:#f6eedc; --brass-ink:#4a3611;
   --inc:#1c7a52; --inc-weak:#e3f3eb; --exp:#c23d2a; --exp-weak:#fbe8e4;
   --warn:#b7590a; --warn-weak:#fdf0e1;
+  --tax:#2563c9; --tax-weak:#e6eefc;
   --scrim:rgba(12,18,26,.45); --shadow:0 1px 2px rgba(20,32,48,.07);
   --font:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
 }
@@ -17,6 +18,7 @@
     --brass:#dcae55; --brass-weak:#33290f; --brass-ink:#f3dca8;
     --inc:#3fc48b; --inc-weak:#14302a; --exp:#f2775f; --exp-weak:#3a1d18;
     --warn:#f2a54a; --warn-weak:#33240f;
+    --tax:#82b1ff; --tax-weak:#17263f;
     --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark;
   }
 }
@@ -184,16 +186,18 @@ textarea.input{height:auto;min-height:72px;padding:10px 12px;resize:vertical;lin
 .rcpt .rh{display:flex;align-items:baseline;gap:8px}
 .rcpt .rh b{font-size:14.5px}
 .rcpt .rh span{flex:1;font-size:12.5px;color:var(--muted)}
-.tax{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--navy);border-radius:6px;padding:2px 7px;margin-left:4px;vertical-align:1px;border:0;cursor:pointer}
+.tax{display:inline-block;font-size:11.5px;font-weight:800;color:var(--tax);background:var(--tax-weak);border:1px solid var(--tax);border-radius:6px;padding:1px 7px;margin-left:4px;vertical-align:1px;cursor:pointer}
 .tax.off{background:transparent;color:var(--muted);border:1px dashed var(--line);font-weight:600}
 .vatchk{display:flex;align-items:center;gap:10px;margin:10px 0 2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:700;font-size:14.5px;cursor:pointer}
 .vatchk.on{border-color:var(--navy);background:rgba(30,50,72,.06)}
 .vatchk input{width:22px;height:22px;accent-color:var(--navy);flex:none;margin:0}
 .vatchk small{display:block;font-weight:500;color:var(--muted);font-size:12.5px;margin-top:1px}
-.vatbox .kv b{font-variant-numeric:tabular-nums}
+.vatbox .kv b{font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:8px}
 .vatbox .hr{border-top:1px solid var(--line);margin:8px 0}
 .vatbox .kv.tot b{font-size:16px}
 .vatbox .sub{font-size:12.5px;color:var(--muted);font-weight:700;margin:10px 0 2px}
+.rcpt .rs{font-size:13px;color:var(--muted);margin-top:4px}
+.rcpt .rs b{color:var(--ink)}
 .rcpt .ri{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
 .ordbtn{flex:none;width:48px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:16px}
 .ordbtn:disabled{opacity:.25}
@@ -688,6 +692,17 @@ function renderClose(){
   // 부가세 신고 기간별 (상반기 → 7월 신고, 하반기 → 다음해 1월 신고)
   h+='<div class="card vatbox"><h3>부가세 자료 — 카드·계산서 매출 vs 자재 계산서 매입</h3><div class="subnote" style="margin-top:0">카드·계산서 매출은 장부 분류 기준, 매입은 주문 탭에서 <b>계산서 발행 주문</b>으로 입고한 자재예요.</div></div>';
   h+=[1,2].map(hf=>{const [a,b]=halfRange(y,hf);return '<div class="card vatbox"><h3>'+halfLabel(y,hf)+'</h3>'+vatRows(vatData(a,b),false)+'</div>'}).join("");
+  // 종합소득세 예상 (다음 해 5월 납부)
+  {const v=vatData(y+"-01-01",y+"-12-31");const sales=Math.round((v.card+v.inv)/1.1);const ad=Math.round(sum(all.filter(e=>e.kind==="out"&&e.cat==="광고비"),e=>e.amount)/1.1);
+   const A=taxEstimate(sales-v.buy),B=taxEstimate(sales-v.buy-ad);const row=(k,val,cls)=>'<div class="kv"><span>'+k+'</span><b class="num'+(cls?" "+cls:"")+'">'+val+'</b></div>';
+   h+='<div class="card vatbox"><h3>'+y+'년분 종합소득세 예상 · '+(y+1)+'년 5월 납부'+(cur?' (올해 지금까지 기준)':'')+'</h3>'+
+     '<div class="sub">계산 근거 — 카드·계산서 매출 대비 자재 계산서 매입</div>'+
+     row('카드+계산서 매출 (부가세 뺀 금액)',won(sales)+'원','inc-t')+row('자재 계산서 매입 (공급가)',(v.buy?'−':'')+won(v.buy)+'원','exp-t')+
+     row('<b>소득금액</b>',signed(A.income)+'원')+row('기본공제 (본인)','−1,500,000원')+row('과세표준',won(A.base)+'원')+row('세율 구간',A.rate?Math.round(A.rate*100)+'%':'-')+
+     row('산출세액 − 표준세액공제 7만원',won(A.nat)+'원')+row('지방소득세 (10%)',won(A.loc)+'원')+
+     '<div class="kv tot"><span><b>납부 예상 합계</b></span><b class="num" style="color:var(--tax);font-size:20px">'+won(A.total)+'원</b></div>'+
+     (ad?'<div class="hr"></div><div class="kv"><span>장부의 광고비 '+won(ad)+'원(부가세 뺀 금액)도 경비로 넣으면</span><b class="num" style="color:var(--tax)">'+won(B.total)+'원</b></div>':'')+
+     '<div class="subnote">참고용 대략 계산이에요. 현금 매출, 다른 경비, 가족 공제, 노란우산, 중간예납은 빠져 있어서 실제 세액과 달라요. 신고 전에 홈택스나 세무사로 꼭 확인하세요.'+(cur?' 작년('+(y-1)+'년)분은 위 ‹ 를 눌러 '+(y-1)+'년 결산에서 보세요.':'')+'</div></div>'}
   // 분류별 / 광고유입별 / 거래처별
   const by=(arr,f)=>{const m={};arr.forEach(e=>{const k=f(e)||"미지정";m[k]=(m[k]||0)+e.amount});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
   const inc=all.filter(e=>e.kind==="in"),exp=all.filter(e=>e.kind==="out");
@@ -1026,6 +1041,10 @@ function vatData(from,to){const inr=e=>e.date&&e.date>=from&&e.date<=to;
 function vatRows(v,click){const tap=(c,lab,val,n)=>click?'<button class="kv tap" data-act="statDetail" data-k="in" data-f="cat" data-v="'+c+'" style="width:100%;background:none;border:0;border-top:1px solid var(--line);padding:6px 0;font:inherit;color:inherit;cursor:pointer;text-align:left"><span>'+lab+' <small style="color:var(--muted)">'+n+'건 ›</small></span><b class="num inc-t">'+won(val)+'원</b></button>':'<div class="kv"><span>'+lab+' <small style="color:var(--muted)">'+n+'건</small></span><b class="num inc-t">'+won(val)+'원</b></div>';
   return '<div class="sub">매출 (고객에게 받은 것)</div>'+tap("카드","카드",v.card,v.cardN)+tap("계산서","계산서",v.inv,v.invN)+'<div class="kv tot"><span><b>카드+계산서 합계</b></span><b class="num inc-t">'+won(v.card+v.inv)+'원</b></div>'+
     '<div class="hr"></div><div class="sub">매입 (자재 주문 계산서 발행)</div><div class="kv"><span>공급가 <small style="color:var(--muted)">'+v.buyN+'건</small></span><b class="num">'+won(v.buy)+'원</b></div><div class="kv"><span>부가세 10%</span><b class="num">'+won(v.buyVat)+'원</b></div><div class="kv tot"><span><b>계산서 매입 합계</b></span><b class="num exp-t">'+won(v.buy+v.buyVat)+'원</b></div>'}
+// 종합소득세 (2023년 귀속부터 세율) — 과세표준 상한, 세율, 누진공제
+const ITAX=[[14e6,.06,0],[50e6,.15,1.26e6],[88e6,.24,5.76e6],[150e6,.35,15.44e6],[300e6,.38,19.94e6],[500e6,.40,25.94e6],[1e9,.42,35.94e6],[Infinity,.45,65.94e6]];
+function incomeTax(base){if(base<=0)return {tax:0,rate:0};const b=ITAX.find(r=>base<=r[0]);return {tax:Math.max(0,Math.floor(base*b[1]-b[2])),rate:b[1]}}
+function taxEstimate(income){const base=Math.max(0,income-1500000);const t=incomeTax(base);const nat=Math.max(0,t.tax-70000);const loc=Math.floor(nat*0.1);return {income,base,rate:t.rate,calc:t.tax,nat,loc,total:nat+loc}}
 function halfOf(m){return Number(m.slice(5,7))<=6?1:2}
 function halfRange(y,h){return h===1?[y+"-01-01",y+"-06-30"]:[y+"-07-01",y+"-12-31"]}
 function halfLabel(y,h){return y+"년 "+(h===1?"상반기(1~6월) · "+y+"년 7월 신고":"하반기(7~12월) · "+(y+1)+"년 1월 신고")}
@@ -1042,7 +1061,7 @@ function renderOrder(qm){
   h+='</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn brass" data-act="oCopy"'+(st.orders.length?"":" disabled")+'>주문 문구 복사</button><button class="btn" data-act="oRecv"'+(st.orders.length?"":" disabled")+'>받은 자재 입고</button></div>';
   const R=st.receipts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,30);
-  h+='<div class="card"><h3>입고 내역 — 받은 자재 입고 기록</h3>'+(R.length?R.map(rc=>'<div class="rcpt"><div class="rh"><b>'+dlabel(rc.date)+' 입고</b><button class="tax'+(rc.invoice?"":" off")+'" data-act="rcInv" data-id="'+rc.id+'" aria-label="계산서 발행 표시 바꾸기">'+(rc.invoice?"계산서 발행":"계산서 없음")+'</button><span>'+rc.items.length+'건 · '+sum(rc.items,x=>x.qty)+'개'+(rcTotal(rc)?' · 합계 '+won(rcTotal(rc))+'원'+(rc.invoice?' (부가세 포함)':''):"")+'</span><button class="x" data-act="rcCancel" data-id="'+rc.id+'" aria-label="입고 취소" style="width:auto;padding:0 4px;font-size:13px">취소</button></div><div class="ri">'+rc.items.map(x=>esc(x.name)+' '+x.qty+'개').join(", ")+'</div></div>').join(""):'<div class="subnote">아직 입고 기록이 없어요. 자재를 받으면 위 <b>받은 자재 입고</b>를 누르세요.</div>')+'</div>';
+  h+='<div class="card"><h3>입고 내역 — 받은 자재 입고 기록</h3>'+(R.length?R.map(rc=>'<div class="rcpt"><div class="rh"><b>'+dlabel(rc.date)+' 입고</b><button class="tax'+(rc.invoice?"":" off")+'" data-act="rcInv" data-id="'+rc.id+'" aria-label="계산서 발행 표시 바꾸기">'+(rc.invoice?"✓ 계산서 발행":"계산서 없음")+'</button><span></span><button class="x" data-act="rcCancel" data-id="'+rc.id+'" aria-label="입고 취소" style="width:auto;padding:0 4px;font-size:13px">취소</button></div><div class="rs">'+rc.items.length+'건 · '+sum(rc.items,x=>x.qty)+'개'+(rcTotal(rc)?' · 합계 <b>'+won(rcTotal(rc))+'원</b>'+(rc.invoice?' (공급가 '+won(rc.amount||0)+' + 부가세 '+won(rcTotal(rc)-(rc.amount||0))+')':''):"")+'</div><div class="ri">'+rc.items.map(x=>esc(x.name)+' '+x.qty+'개').join(", ")+'</div></div>').join(""):'<div class="subnote">아직 입고 기록이 없어요. 자재를 받으면 위 <b>받은 자재 입고</b>를 누르세요.</div>')+'</div>';
   $("main").innerHTML=h;
   $("oMemo").oninput=e=>{st.orderMemo=e.target.value;save()};
   $("oInv").onchange=e=>{st.orderInvoice=e.target.checked;save();render()};
@@ -1076,7 +1095,7 @@ function openReceive(){
     $("rGo").onclick=()=>{const done=st.orders.filter(o=>sel[o.id].on);if(!done.length){toast("체크한 자재가 없어요");return}
       const rid=uid();const items=done.map(o=>({itemId:o.itemId||null,name:o.name,qty:sel[o.id].qty}));
       items.forEach(x=>{if(x.itemId&&itemById(x.itemId))st.moves.push({id:uid(),itemId:x.itemId,date:rDate,ts:Date.now(),qty:x.qty,type:"order",memo:"주문 입고",receiptId:rid})});
-      st.receipts.push(Object.assign({id:rid,date:rDate,ts:Date.now(),items,amount:est},rInv?{invoice:true,vat:vatOf(est)}:{}));
+      const amt=rAmt!=null?rAmt:est;st.receipts.push(Object.assign({id:rid,date:rDate,ts:Date.now(),items,amount:amt},rInv?{invoice:true,vat:vatOf(amt)}:{}));
       st.orders=st.orders.filter(o=>!sel[o.id].on);save();closeAll();render();toast(dlabel(rDate)+" "+done.length+"건 입고했어요"+(rInv?" · 계산서 발행":""))};
   };openSheet(draw);
 }
